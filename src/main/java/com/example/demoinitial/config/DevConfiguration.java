@@ -76,9 +76,7 @@ public class DevConfiguration implements HasLogger {
         createEmployeeMaxMustermann();
         assignMaxMustermannToDesignProject();
         assignMaxMustermannAsChef();
-
     }
-
 
     private void createPersonData() {
         personRepository.save(felixMuster);
@@ -201,7 +199,6 @@ public class DevConfiguration implements HasLogger {
         departmentRepository.findByIdWithEagerRelationships(departmentDev.getId()).ifPresent(dep -> {
             dep.getEmployees().forEach(e -> getLogger().info("Department " + dep.getName() + " - " + e.toString()));
         });
-
     }
 
     private void createDesignProject() {
