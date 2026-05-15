@@ -23,6 +23,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -66,25 +68,28 @@ public class WebSecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-
     @Bean
     @Order(0)
     SecurityFilterChain resources(HttpSecurity http) throws Exception {
         String[] permittedResources = new String[] {
-            "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
-            "/index.html","/favicon.ico", "/error",
-            "/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
+                "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
+                "/index.html","/favicon.ico", "/error",
+				"/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
         };
         http
             .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
             .csrf(AbstractHttpConfigurer::disable)
             .securityMatcher(permittedResources)
-            .authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll())
+            .authorizeHttpRequests((
+                    authorize) -> authorize.anyRequest().permitAll()
+            )
             .requestCache(RequestCacheConfigurer::disable)
             .securityContext(SecurityContextConfigurer::disable)
             .sessionManagement(AbstractHttpConfigurer::disable);
+
         return http.build();
     }
+
     @Bean
     @Order(1)
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
@@ -101,9 +106,10 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/api/persons/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/actuator/**").permitAll()
-                .requestMatchers(
-                    ( "/h2-console/**")).permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .anyRequest().authenticated()
             ).authenticationProvider(authenticationProvider())
+            .httpBasic(withDefaults())
             .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -131,8 +137,8 @@ public class WebSecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/"));
 
-        http.headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin));
-        http.authenticationProvider(authenticationProvider());
+        http.headers(headers ->
+                             headers.frameOptions(FrameOptionsConfig::sameOrigin));
 
         return http.build();
     }
