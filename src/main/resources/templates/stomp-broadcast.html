@@ -27,19 +27,17 @@
             <div class="mb-3">
                 <div class="input-group" id="sendmessage" style="display: none;">
                     <input type="text" id="message" class="form-control" placeholder="Message">
-                    <div class="input-group-append">
-                        <button id="send" class="btn btn-primary" onclick="send()">Send</button>
-                    </div>
+                    <button id="send" class="btn btn-primary" onclick="send()">Send</button>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div id="content"></div>
             <div>
-                        <span class="float-right">
-                            <button id="clear" class="btn btn-primary" onclick="clearBroadcast()"
-                                    style="display: none;">Clear</button>
-                        </span>
+                <span class="float-end">
+                    <button id="clear" class="btn btn-primary" onclick="clearBroadcast()"
+                            style="display: none;">Clear</button>
+                </span>
             </div>
         </div>
     </div>
@@ -47,44 +45,46 @@
 
 <th:block th:insert="~{fragments/common.html :: footer}"></th:block>
 
-
 <script type="text/javascript">
     var stompClient = null;
-    var from = $("#from");
-    var sendMessage = $("#sendmessage");
-    var userName = from.val();
 
-    from.keyup(function(event) {
-        if (event.keyCode === 13) {
+    var fromInput = document.getElementById('from');
+    var messageInput = document.getElementById('message');
+    var sendMessageDiv = document.getElementById('sendmessage');
+    var userName = '';
+
+    fromInput.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
             connect();
         }
     });
 
-    sendMessage.keyup(function(event) {
-        if (event.keyCode === 13) {
-            send();
+    document.addEventListener('DOMContentLoaded', function() {
+        var msgEl = document.getElementById('message');
+        if (msgEl) {
+            msgEl.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    send();
+                }
+            });
         }
     });
 
     function setConnected(connected) {
-        $("#from").prop("disabled", connected);
-        $("#connect").prop("disabled", connected);
-        $("#disconnect").prop("disabled", !connected);
-        if (connected) {
-            $("#sendmessage").show();
-        } else {
-            $("#sendmessage").hide();
-        }
+        document.getElementById('from').disabled = connected;
+        document.getElementById('connect').disabled = connected;
+        document.getElementById('disconnect').disabled = !connected;
+        document.getElementById('sendmessage').style.display = connected ? 'flex' : 'none';
     }
+
     function connect() {
-        userName = $("#from").val();
-        if (userName == null || userName === "") {
+        userName = document.getElementById('from').value;
+        if (userName == null || userName === '') {
             alert('Please input a nickname!');
             return;
         }
         /*<![CDATA[*/
         var url = /*[['ws://'+${serverName}+':'+${serverPort}+@{/broadcast}]]*/ 'ws://localhost:8080/broadcast';/*]]>*/
-        /*]]>*/
         var socket = new SockJS('/broadcast');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function (frame) {
@@ -93,9 +93,7 @@
             stompClient.subscribe('/topic/messages', function (output) {
                 showBroadcastMessage(createTextNode(JSON.parse(output.body)));
             });
-
             sendConnection(' connected to server');
-            setConnected(true);
         }, function (err) {
             alert('error' + err);
         });
@@ -104,7 +102,6 @@
     function disconnect() {
         if (stompClient != null) {
             sendConnection(' disconnected from server');
-
             stompClient.disconnect(function () {
                 console.log('disconnected...');
                 setConnected(false);
@@ -122,30 +119,30 @@
     }
 
     function send() {
-        var text = $("#message").val();
+        var text = document.getElementById('message').value;
         sendBroadcast({'from': userName, 'text': text});
-        $("#message").val("");
+        document.getElementById('message').value = '';
     }
 
     function createTextNode(messageObj) {
         return '<div class="row alert alert-info"><div class="col-md-8">' +
             messageObj.text +
-            '</div><div class="col-md-4 text-right"><small>[<b>' +
+            '</div><div class="col-md-4 text-end"><small>[<b>' +
             messageObj.from +
             '</b> ' +
             messageObj.time +
-            ']</small>' +
-            '</div></div>';
+            ']</small></div></div>';
     }
 
     function showBroadcastMessage(message) {
-        $("#content").html($("#content").html() + message);
-        $("#clear").show();
+        var content = document.getElementById('content');
+        content.innerHTML += message;
+        document.getElementById('clear').style.display = '';
     }
 
     function clearBroadcast() {
-        $("#content").html("");
-        $("#clear").hide();
+        document.getElementById('content').innerHTML = '';
+        document.getElementById('clear').style.display = 'none';
     }
 </script>
 </body>
