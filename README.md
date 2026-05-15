@@ -1,8 +1,8 @@
-# Education repository for spring boot introduction to CAS-OOP-23-15
+# Education repository for spring boot introduction to CAS-OOP-26-20
 
-[https://github.zhaw.ch/bacn/cas-oop-spring-23-15](https://github.zhaw.ch/bacn/cas-oop-spring-23-15)
+[https://github.com/mbachmann/cas-oop-spring-26-20](https://github.zhaw.ch/bacn/cas-oop-spring-26-20)
 
-Migration to Spring Boot 3.2.0
+Migration to Spring Boot 4.0.x
 
 ## Branches in this repository
 
