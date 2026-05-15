@@ -219,7 +219,6 @@ public class DevConfiguration implements HasLogger {
         departmentRepository.findByIdWithEagerRelationships(departmentDev.getId()).ifPresent(dep -> {
             dep.getEmployees().forEach(e -> getLogger().info("Department " + dep.getName() + " - " + e.toString()));
         });
-
     }
 
     private void createDesignProject() {
