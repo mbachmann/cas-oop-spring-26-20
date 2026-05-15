@@ -93,7 +93,7 @@ public class DevConfiguration implements HasLogger {
     }
 
     @Transactional
-    User createUserIfNotFound(String name, String eMail, String password) {
+    public User createUserIfNotFound(String name, String eMail, String password) {
 
         Optional<User> user = userRepository.findByEmail(eMail);
         if (user.isPresent()) {
@@ -219,7 +219,6 @@ public class DevConfiguration implements HasLogger {
         departmentRepository.findByIdWithEagerRelationships(departmentDev.getId()).ifPresent(dep -> {
             dep.getEmployees().forEach(e -> getLogger().info("Department " + dep.getName() + " - " + e.toString()));
         });
-
     }
 
     private void createDesignProject() {

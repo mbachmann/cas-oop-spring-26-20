@@ -1,10 +1,9 @@
 package com.example.demoinitial.domain;
 
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.example.demoinitial.domain.*;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -24,15 +23,16 @@ public class Employee extends BaseEntity {
     private String name;
     private long salary;
 
-    @OneToMany(mappedBy = "chef", orphanRemoval = true, cascade = CascadeType.ALL )
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "chef", fetch = FetchType.EAGER, orphanRemoval = true,
+            cascade = CascadeType.ALL )
     private Set<Employee> employees = new HashSet<>();
 
     @ManyToOne
     private Employee chef;
 
-    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL )
-    private Set<Phone> phones = new HashSet<Phone>();
+    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY, orphanRemoval = true,
+            cascade = CascadeType.ALL )
+    private Set<Phone> phones = new HashSet<>();
     @ManyToOne
     private Department department;
 
@@ -40,7 +40,7 @@ public class Employee extends BaseEntity {
     private Address address;
 
     @ManyToMany(mappedBy = "employees")
-    private Set<Project> projects = new HashSet<Project>();
+    private Set<Project> projects = new HashSet<>();
 
     public String getName() {
         return name;
