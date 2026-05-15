@@ -23,6 +23,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -62,29 +64,27 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
-
-    @Bean
     @Order(0)
     SecurityFilterChain resources(HttpSecurity http) throws Exception {
         String[] permittedResources = new String[] {
-            "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
-            "/index.html","/favicon.ico", "/error",
-            "/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
+                "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
+                "/index.html","/favicon.ico", "/error",
+				"/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
         };
         http
             .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
             .csrf(AbstractHttpConfigurer::disable)
             .securityMatcher(permittedResources)
-            .authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll())
+            .authorizeHttpRequests((
+                    authorize) -> authorize.anyRequest().permitAll()
+            )
             .requestCache(RequestCacheConfigurer::disable)
             .securityContext(SecurityContextConfigurer::disable)
             .sessionManagement(AbstractHttpConfigurer::disable);
+
         return http.build();
     }
+
     @Bean
     @Order(1)
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
@@ -131,10 +131,33 @@ public class WebSecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/"));
 
-        http.headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin));
-        http.authenticationProvider(authenticationProvider());
+        http.headers(headers ->
+                             headers.frameOptions(FrameOptionsConfig::sameOrigin));
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        manager.createUser(User.withUsername("user")
+                               .password(passwordEncoder().encode("user"))
+                               .roles("USER").build());
+        manager.createUser(User.withUsername("admin")
+                               .password(passwordEncoder().encode("admin"))
+                               .roles("ADMIN", "USER").build());
+        manager.createUser(User.withUsername("admin@example.com")
+                               .password(passwordEncoder().encode("admin"))
+                               .roles("ADMIN", "USER").build());
+        manager.createUser(User.withUsername("admin@admin.ch")
+                               .password(passwordEncoder().encode("admin"))
+                               .roles("ADMIN", "USER").build());
+        return manager;
     }
 
     @Bean

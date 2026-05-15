@@ -1,16 +1,14 @@
-package com.example.demoinitial.web.controller;
+package com.example.demoinitial.web;
 
-import com.example.demoinitial.domain.Role;
+
 import com.example.demoinitial.domain.User;
-import com.example.demoinitial.domain.enums.ERole;
-import com.example.demoinitial.repository.RoleRepository;
 import com.example.demoinitial.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,14 +21,12 @@ import jakarta.validation.Valid;
 public class UserController {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
+
 
     @Autowired
-    public UserController(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserController(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
+
     }
 
     @GetMapping("/list")
@@ -40,12 +36,13 @@ public class UserController {
     }
 
     @GetMapping("/signup")
-    public String showSignUpForm(User user) {
+    public String showSignUpForm(Model model) {
+        model.addAttribute("user", new User());
         return "add-user";
     }
 
     @PostMapping("/adduser")
-    public String addUser(@Valid User user, BindingResult result, Model model) throws Exception {
+    public String addUser(@Valid @ModelAttribute("user") User user, BindingResult result, Model model) throws Exception {
         if (result.hasErrors()) {
             return "add-user";
         }
@@ -60,12 +57,8 @@ public class UserController {
             result.rejectValue("username", "User name already exists", "User name already exists");
             return "add-user";
         }
-        Role userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() ->
-            new Exception("userRole not found")
-        );
 
-        user.getRoles().add(userRole);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(user.getPassword());
         userRepository.save(user);
         return "redirect:/users/list";
     }
@@ -108,7 +101,7 @@ public class UserController {
             }
         }
 
-        user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        user.setPassword(updatedUser.getPassword());
         userRepository.save(user);
 
         return "redirect:/users/list";
