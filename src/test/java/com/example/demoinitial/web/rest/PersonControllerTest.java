@@ -12,7 +12,7 @@ import java.util.*;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,19 +22,26 @@ import com.example.demoinitial.config.MyComponent;
 import com.example.demoinitial.domain.Person;
 import com.example.demoinitial.service.PersonService;
 import com.example.demoinitial.web.api.response.PagedPersonsResponse;
+import com.example.demoinitial.web.rest.PersonController;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 
 @WebMvcTest(PersonController.class)
-@WithMockUser(username = "admin",           // 🔐 mocked principal
-		roles = {"ADMIN","USER"})
+@WithMockUser(username = "admin", roles = {"ADMIN", "USER"})
 class PersonControllerTest {
 
 	@MockitoBean
-	MyComponent myComponent;
+	private MyComponent myComponent;
+
+	@MockitoBean(name = "auditorProvider")
+	private AuditorAware<String> auditorProvider;
+
+	@MockitoBean
+	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
 	private Person johnDoe;
 	private Person janeDoe;
-	private Person felixMuster;
 	private Person johnSmith;
 	private Person aliceWonder;
 
@@ -48,9 +55,6 @@ class PersonControllerTest {
 		janeDoe.setFirstName("Jane");
 		janeDoe.setLastName("Doe");
 
-		felixMuster = new Person();
-		felixMuster.setFirstName("Felix");
-		felixMuster.setLastName("Muster");
 
 		johnSmith = new Person();
 		johnSmith.setFirstName("John");
@@ -63,20 +67,16 @@ class PersonControllerTest {
 		aliceWonder.setId(5L);
 	}
 
-
 	@Autowired
 	private MockMvc mockMvc;
 
 	@MockitoBean
 	private PersonService personService;
 
-	@Autowired
-	private ObjectMapper objectMapper;   // comes from Spring Boot starter‑json
-
-	/* ---------- GET /api/persons/{id} --------------------------------- */
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Test
-	@DisplayName("200 ‑ getPersonById")
+	@DisplayName("200 - getPersonById")
 	void getPersonById_returnsPerson() throws Exception {
 		given(personService.findById(5L)).willReturn(Optional.of(aliceWonder));
 
@@ -88,15 +88,13 @@ class PersonControllerTest {
 	}
 
 	@Test
-	@DisplayName("404 ‑ getPersonById not found")
+	@DisplayName("404 - getPersonById not found")
 	void getPersonById_notFound() throws Exception {
 		given(personService.findById(anyLong())).willReturn(Optional.empty());
 
 		mockMvc.perform(get("/api/persons/99"))
 			   .andExpect(status().isNotFound());
 	}
-
-	/* ---------- GET /api/persons -------------------------------------- */
 
 	@Test
 	void getAllPersons() throws Exception {
@@ -107,8 +105,6 @@ class PersonControllerTest {
 			   .andExpect(jsonPath("$", hasSize(2)))
 			   .andExpect(jsonPath("$[1].lastName").value("Doe"));
 	}
-
-	/* ---------- GET /api/persons/paged -------------------------------- */
 
 	@Test
 	void getPersonsPaged() throws Exception {
@@ -132,8 +128,6 @@ class PersonControllerTest {
 			   .andExpect(jsonPath("$.totalElements").value(1));
 	}
 
-	/* ---------- GET /api/persons/filtered ----------------------------- */
-
 	@Test
 	void getPersonsFiltered() throws Exception {
 		Person person = new Person();
@@ -149,26 +143,21 @@ class PersonControllerTest {
 			   .andExpect(jsonPath("$[0].id").value(4));
 	}
 
-	/* ---------- POST /api/persons (201 + Location) -------------------- */
-
 	@Test
 	void createPerson_returns201() throws Exception {
-		given(personService.createPerson(any(Person.class)))
-				.willReturn(aliceWonder); // id=5
+		given(personService.createPerson(any(Person.class))).willReturn(aliceWonder);
 
-		mockMvc.perform(post("/api/persons")
-								.with(csrf())                         // 🔐 CSRF token
+		mockMvc.perform(post("/api/persons/create")
+								.with(csrf())
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(objectMapper.writeValueAsString(aliceWonder)))
 			   .andExpect(status().isCreated())
-			   .andExpect(header().string("Location", matchesRegex(".*/api/persons/5$")));
+			   .andExpect(header().string("Location", matchesRegex(".*/api/persons/create.*")));
 	}
-
-	/* ---------- POST /api/persons/new (200 + body) -------------------- */
 
 	@Test
 	void createPersonImmediate() throws Exception {
-		given(personService.createPerson(any(Person.class))).willReturn(johnSmith); // id=4
+		given(personService.createPerson(any(Person.class))).willReturn(johnSmith);
 
 		mockMvc.perform(post("/api/persons/new")
 								.with(csrf())
@@ -178,8 +167,6 @@ class PersonControllerTest {
 			   .andExpect(jsonPath("$.id").value(4))
 			   .andExpect(jsonPath("$.firstName").value("John"));
 	}
-
-	/* ---------- PUT /api/persons/{id} --------------------------------- */
 
 	@Test
 	void updatePerson() throws Exception {
@@ -193,8 +180,6 @@ class PersonControllerTest {
 			   .andExpect(status().isOk())
 			   .andExpect(jsonPath("$.firstName").value("John"));
 	}
-
-	/* ---------- DELETE /api/persons/delete/{id} ----------------------- */
 
 	@Test
 	void deletePerson() throws Exception {

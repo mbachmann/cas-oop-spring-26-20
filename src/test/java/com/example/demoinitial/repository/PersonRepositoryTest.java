@@ -3,17 +3,31 @@ package com.example.demoinitial.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.example.demoinitial.config.MyComponent;
 import com.example.demoinitial.domain.Person;
 
 @DataJpaTest
+@Import(PersonRepositoryTest.AuditingTestConfig.class)
 class PersonRepositoryTest {
+
+	@TestConfiguration
+	static class AuditingTestConfig {
+		@Bean("auditorProvider")
+		AuditorAware<String> auditorProvider() {
+			return () -> Optional.of("test-auditor");
+		}
+	}
 
 	@MockitoBean
 	MyComponent myComponent;
