@@ -64,6 +64,11 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
     @Order(0)
     SecurityFilterChain resources(HttpSecurity http) throws Exception {
         String[] permittedResources = new String[] {
@@ -101,9 +106,10 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/api/persons/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/actuator/**").permitAll()
-                .requestMatchers(
-                    ( "/h2-console/**")).permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .anyRequest().authenticated()
             ).authenticationProvider(authenticationProvider())
+            .httpBasic(withDefaults())
             .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -135,29 +141,6 @@ public class WebSecurityConfig {
                              headers.frameOptions(FrameOptionsConfig::sameOrigin));
 
         return http.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("user")
-                               .password(passwordEncoder().encode("user"))
-                               .roles("USER").build());
-        manager.createUser(User.withUsername("admin")
-                               .password(passwordEncoder().encode("admin"))
-                               .roles("ADMIN", "USER").build());
-        manager.createUser(User.withUsername("admin@example.com")
-                               .password(passwordEncoder().encode("admin"))
-                               .roles("ADMIN", "USER").build());
-        manager.createUser(User.withUsername("admin@admin.ch")
-                               .password(passwordEncoder().encode("admin"))
-                               .roles("ADMIN", "USER").build());
-        return manager;
     }
 
     @Bean

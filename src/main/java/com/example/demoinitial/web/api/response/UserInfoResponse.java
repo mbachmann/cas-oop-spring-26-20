@@ -1,20 +1,20 @@
 package com.example.demoinitial.web.api.response;
 
-import java.util.List;
-
+import java.util.*;
 
 public class UserInfoResponse {
     private Long id;
     private String username;
     private String email;
     private List<String> roles;
+    private String jwtToken;
 
-    public UserInfoResponse(Long id, String username, String email, List<String> roles) {
+    public UserInfoResponse(Long id, String username, String email, List<String> roles, String jwtToken) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.roles = roles;
-
+        this.jwtToken = jwtToken;
     }
 
     public Long getId() {
@@ -47,5 +47,11 @@ public class UserInfoResponse {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
+    }
+
+    public String getJwtToken() {return this.jwtToken;}
+
+    public void setJwtToken(String jwtToken) {
+        this.jwtToken = jwtToken;
     }
 }

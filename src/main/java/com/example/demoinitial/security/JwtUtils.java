@@ -43,9 +43,33 @@ public class JwtUtils implements HasLogger {
         }
     }
 
+    public String getJwtFromBearer(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        if (authorization == null || authorization.isBlank()) {
+            return null;
+        }
+
+        String prefix = "Bearer ";
+        if (!authorization.startsWith(prefix)) {
+            return null;
+        }
+
+        String token = authorization.substring(prefix.length()).trim();
+        return token.isEmpty() ? null : token;
+    }
+
     public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
         String jwt = generateTokenFromUsername(userPrincipal);
         return ResponseCookie.from(jwtCookieName, jwt).path("/api").maxAge(24 * 60 * 60).httpOnly(true).build();
+    }
+
+    public ResponseCookie generateJwtCookie(String jwtToken) {
+        return ResponseCookie.from(jwtCookieName, jwtToken).path("/api").maxAge(24 * 60 * 60).httpOnly(true).build();
+    }
+
+    public String generateJwtToken(UserDetailsImpl userPrincipal) {
+       return generateTokenFromUsername(userPrincipal);
+
     }
 
     public ResponseCookie getCleanJwtCookie() {

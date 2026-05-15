@@ -57,6 +57,7 @@ public class AuthTokenFilter extends OncePerRequestFilter implements HasLogger {
     }
 
     private String parseJwt(HttpServletRequest request) {
-        return jwtUtils.getJwtFromCookies(request);
+        String jwt = jwtUtils.getJwtFromBearer(request);
+        return jwt != null ? jwt : jwtUtils.getJwtFromCookies(request);
     }
 }

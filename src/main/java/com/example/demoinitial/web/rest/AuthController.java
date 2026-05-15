@@ -73,7 +73,9 @@ public class AuthController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+        String jwtToken = jwtUtils.generateJwtToken(userDetails);
+
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(jwtToken);
 
         List<String> roles = userDetails.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
@@ -83,7 +85,7 @@ public class AuthController {
             .body(new UserInfoResponse(userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                roles));
+                roles, jwtToken));
     }
 
     @PostMapping("/signup")
