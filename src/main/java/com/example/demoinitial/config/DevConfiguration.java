@@ -83,6 +83,12 @@ public class DevConfiguration implements HasLogger {
     private void createPersonData() {
         personRepository.save(felixMuster);
         personRepository.save(maxMustermann);
+
+        Person pe = new Person();
+        pe.setFirstName("John");
+        pe.setLastName("Doe");
+        personRepository.save(pe);
+
         getLogger().debug("Person felixMuster and  maxMustermann saved to DB");
 
         List<Person> persons = personRepository.findQueryByLastName("Mustermann");
