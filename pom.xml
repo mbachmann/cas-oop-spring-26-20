@@ -63,6 +63,12 @@
          <scope>test</scope>
       </dependency>
 
+      <!-- open api dependencies -->
+      <dependency>
+         <groupId>org.springdoc</groupId>
+         <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      </dependency>
+
       <!-- web jar dependencies -->
       <dependency>
          <groupId>org.webjars</groupId>
@@ -90,6 +96,18 @@
          <version>5.4.1</version>
       </dependency>
    </dependencies>
+
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-bom</artifactId>
+            <version>3.0.3</version>
+            <type>pom</type>
+            <scope>import</scope>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
 
    <build>
       <plugins>
