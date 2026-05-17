@@ -21,6 +21,7 @@ services:
       APP_DB_PASSWORD: demo-initial
       LOKI_URL: http://localhost:3100/loki/api/v1/push
       LOKI_ENABLED: false
+      CORS_ALLOWED_ORIGINS: https://demo-initial-h2.example.com,http://localhost:4200,http://localhost:4000,http://localhost:8080
     networks:
       - internal
       - proxy
