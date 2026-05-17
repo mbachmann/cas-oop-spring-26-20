@@ -5,6 +5,10 @@
 package com.example.demoinitial.config;
 
 import java.util.List;
+
+import com.example.demoinitial.utils.HasLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +23,7 @@ import org.springframework.web.filter.CorsFilter;
  * and reject it.
  */
 @Configuration
-public class CorsConfig {
+public class CorsConfig implements HasLogger {
 
     @Value("${endpoints.web.cors.path-mappings}")
     private String pathMappings;
@@ -36,6 +40,17 @@ public class CorsConfig {
      */
     @Bean
     public CorsFilter corsFilter() {
+        getLogger().info("================================");
+        getLogger().info("Initializing CORS Configuration");
+        getLogger().info("================================");
+        getLogger().info("Path Mappings: {}", pathMappings);
+        getLogger().info("Allowed Origins: {}", allowedOrigins);
+        getLogger().info("Allowed Methods: {}", allowedMethods);
+        getLogger().info("Allowed Headers: {}", allowedHeaders);
+        getLogger().info("Max Age: 60 seconds");
+        getLogger().info("Allow Credentials: true");
+        getLogger().info("================================");
+
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);

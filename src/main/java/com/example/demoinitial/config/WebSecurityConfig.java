@@ -122,6 +122,7 @@ public class WebSecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests((requests) -> requests
 				.requestMatchers(OPTIONS).permitAll()
+				.requestMatchers("/", "/index.html", "/login", "/error").permitAll()
 				.requestMatchers("/users/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
 				.requestMatchers("/stomp-broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
 				.requestMatchers("/broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
@@ -132,7 +133,6 @@ public class WebSecurityConfig {
 
         http
             .formLogin(login -> login.loginPage("/login").permitAll())
-            .httpBasic(withDefaults())
             .logout((logout) -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/"));
