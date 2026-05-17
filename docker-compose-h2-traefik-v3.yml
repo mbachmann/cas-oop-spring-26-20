@@ -4,15 +4,15 @@ networks:
 
 services:
   demo-initial-h2:
-    image: uportal/todo-app:latest
+    image: uportal/demo-initial:latest
     container_name: demo-initial-on-h2
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.todo-h2.rule=Host(`demo-initial-h2.example.com`)" # change hostname!
-      - "traefik.http.routers.todo-h2.tls=true"
-      - "traefik.http.routers.todo-h2.tls.certresolver=lets-encrypt"
-      - "traefik.http.routers.todo-h2.entrypoints=websecure"
-      - "traefik.http.services.todo-h2.loadbalancer.server.port=8080"
+      - "traefik.http.routers.demo-initial-h2.rule=Host(`demo-initial-h2.example.com`)" # change hostname!
+      - "traefik.http.routers.demo-initial-h2.tls=true"
+      - "traefik.http.routers.demo-initial-h2.tls.certresolver=lets-encrypt"
+      - "traefik.http.routers.demo-initial-h2.entrypoints=websecure"
+      - "traefik.http.services.demo-initial-h2.loadbalancer.server.port=8080"
     restart: unless-stopped
     networks:
       - proxy

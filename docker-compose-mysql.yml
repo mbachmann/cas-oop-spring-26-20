@@ -1,0 +1,66 @@
+
+version: '3'
+
+services:
+  demo-initial-mysql:
+    image: uportal/demo-initial:latest
+    container_name: demo-initial-mysql
+    restart: unless-stopped
+    environment:
+      APP_NAME: Demo Initial App with MySQL
+      ACTIVE_PROFILES: dev,mysql
+      APP_URL: http://localhost:8080
+      APP_DB_HOST: demo-initial-mysql84-db
+      APP_DB_PORT: 3306
+      APP_DB_NAME: db
+      APP_DB_USERNAME: root
+      APP_DB_PASSWORD: demo-initial
+      LOKI_URL: http://localhost:3100/loki/api/v1/push
+      LOKI_ENABLED: false
+    ports:
+      - 8080:8080
+    depends_on:
+      demo-initial-dbmysql84:
+        condition: service_healthy
+
+  demo-initial-adminer:
+    image: adminer:4.17.1
+    container_name: demo-initial-adminer-on-mysql
+    restart: unless-stopped
+    ports:
+      - 9090:8080
+    environment:
+      ADMINER_DEFAULT_SERVER: demo-initial-mysql84-db
+    depends_on:
+      demo-initial-dbmysql84:
+        condition: service_healthy
+
+  demo-initial-dbmysql84:
+    image: mysql:8.4.4
+    container_name: demo-initial-mysql84-db
+    command: mysqld --mysql-native-password=ON
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: 'db'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'user'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'demo-initial'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: 'demo-initial'
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>, host port for using with mysql-workbench or dbeaver
+      - '33066:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '3306'
+      # Where our data will be persisted
+    volumes:
+      - demo-initial-mysql84-vol:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 20
+# Names our volume
+volumes:
+  demo-initial-mysql84-vol:
