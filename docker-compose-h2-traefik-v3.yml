@@ -20,4 +20,5 @@ services:
       APP_NAME: Demo Initial with Spring Boot and H2
       ACTIVE_PROFILES: dev,h2
       APP_URL: https://demo-initial-h2.example.com # change hostname!
-      CORS_ALLOWED_ORIGINS: https://demo-initial-h2.example.com,http://localhost:4200,http://localhost:4000,http://localhost:8080
+      CORS_ALLOWED_ORIGINS: https://angular-21-jwt-auth.united-portal.com,https://demo-initial-h2.united-portal.com,http://localhost:4200,http://localhost:4000,http://localhost:4001,http://localhost:8080
+
