@@ -13,12 +13,14 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,55 +30,69 @@ public class WebSecurityConfig {
     @Order(0)
     SecurityFilterChain resources(HttpSecurity http) throws Exception {
         String[] permittedResources = new String[] {
-            "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
-            "/index.html","/favicon.ico", "/error",
-            "/v3/**","/swagger-ui.html","/swagger-ui/**"
+                "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
+                "/index.html","/favicon.ico", "/error",
+                "/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
         };
         http
-            .securityMatcher(permittedResources)
-            .authorizeHttpRequests((
-                    authorize) -> authorize.anyRequest().permitAll()
-            )
-            .requestCache(RequestCacheConfigurer::disable)
-            .securityContext(SecurityContextConfigurer::disable)
-            .sessionManagement(AbstractHttpConfigurer::disable);
+                .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
+                .csrf(AbstractHttpConfigurer::disable)
+                .securityMatcher(permittedResources)
+                .authorizeHttpRequests((
+                                               authorize) -> authorize.anyRequest().permitAll()
+                )
+                .requestCache(RequestCacheConfigurer::disable)
+                .securityContext(SecurityContextConfigurer::disable)
+                .sessionManagement(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
 
     @Bean
     @Order(1)
-    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-            .headers(
-                    headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin)
-            )
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests((requests) -> {
-
-                    requests
+                .securityMatcher("/api/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(OPTIONS).permitAll()
-                        .requestMatchers("/users/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/stomp-broadcast/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/persons/**").hasAnyRole("USER", "ADMIN")
+                        .anyRequest().hasAnyRole("USER", "MODERATOR", "ADMIN")
+                )
+                .httpBasic(withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    protected SecurityFilterChain mvcFilterChain(HttpSecurity http) throws Exception {
+        http
+                .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers(OPTIONS).permitAll()
+                        .requestMatchers("/", "/index.html", "/login", "/error").permitAll()
+                        .requestMatchers("/users/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
+                        .requestMatchers("/stomp-broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
+                        .requestMatchers("/broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest()
-                        .authenticated();
-                }
-            );
+                        .authenticated()
+                );
 
         http
-            .formLogin(login -> login.loginPage("/login").permitAll())
-            .httpBasic(withDefaults())
-            .logout((logout) -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/"));
+                .formLogin(login -> login.loginPage("/login").permitAll())
+                .logout((logout) -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/"));
 
         http.headers(headers ->
                              headers.frameOptions(FrameOptionsConfig::sameOrigin));
 
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
