@@ -32,7 +32,8 @@ public class WebSecurityConfig {
         String[] permittedResources = new String[] {
                 "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
                 "/index.html","/favicon.ico", "/error",
-                "/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
+                "/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**",
+                "/.well-known/**"
         };
         http
                 .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
