@@ -23,6 +23,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -77,15 +79,15 @@ public class WebSecurityConfig {
 				"/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
         };
         http
-            .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
-            .csrf(AbstractHttpConfigurer::disable)
-            .securityMatcher(permittedResources)
-            .authorizeHttpRequests((
-                    authorize) -> authorize.anyRequest().permitAll()
-            )
-            .requestCache(RequestCacheConfigurer::disable)
-            .securityContext(SecurityContextConfigurer::disable)
-            .sessionManagement(AbstractHttpConfigurer::disable);
+                .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
+                .csrf(AbstractHttpConfigurer::disable)
+                .securityMatcher(permittedResources)
+                .authorizeHttpRequests((
+                                               authorize) -> authorize.anyRequest().permitAll()
+                )
+                .requestCache(RequestCacheConfigurer::disable)
+                .securityContext(SecurityContextConfigurer::disable)
+                .sessionManagement(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
@@ -131,11 +133,10 @@ public class WebSecurityConfig {
             );
 
         http
-            .formLogin(login -> login.loginPage("/login").permitAll())
-            .httpBasic(withDefaults())
-            .logout((logout) -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/"));
+                .formLogin(login -> login.loginPage("/login").permitAll())
+                .logout((logout) -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/"));
 
         http.headers(headers ->
                              headers.frameOptions(FrameOptionsConfig::sameOrigin));
