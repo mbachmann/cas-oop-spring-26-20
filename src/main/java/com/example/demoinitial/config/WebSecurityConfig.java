@@ -23,14 +23,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -76,7 +73,8 @@ public class WebSecurityConfig {
         String[] permittedResources = new String[] {
                 "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
                 "/index.html","/favicon.ico", "/error",
-				"/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
+				"/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**",
+                "/.well-known/**"
         };
         http
                 .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
@@ -121,7 +119,10 @@ public class WebSecurityConfig {
     protected SecurityFilterChain mvcFilterChain(HttpSecurity http) throws Exception {
         http
             .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .ignoringRequestMatchers("/h2-console/**")
+            )
             .authorizeHttpRequests((requests) -> requests
 				.requestMatchers(OPTIONS).permitAll()
 				.requestMatchers("/users/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
@@ -133,7 +134,10 @@ public class WebSecurityConfig {
             );
 
         http
-                .formLogin(login -> login.loginPage("/login").permitAll())
+                .formLogin(login -> login
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                        .permitAll())
                 .logout((logout) -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/"));
