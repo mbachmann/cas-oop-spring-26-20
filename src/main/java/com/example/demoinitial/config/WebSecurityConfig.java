@@ -30,8 +30,8 @@ public class WebSecurityConfig {
     @Order(0)
     SecurityFilterChain resources(HttpSecurity http) throws Exception {
         String[] permittedResources = new String[] {
-                "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
-                "/index.html","/favicon.ico", "/error",
+                "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
+                "/favicon.ico", "/error",
                 "/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**",
                 "/.well-known/**"
         };
@@ -73,7 +73,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(OPTIONS).permitAll()
-                        .requestMatchers("/", "/index.html", "/login", "/error").permitAll()
+                        .requestMatchers("/", "/index.html", "/login").permitAll()
                         .requestMatchers("/users/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
                         .requestMatchers("/stomp-broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
                         .requestMatchers("/broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
@@ -83,13 +83,16 @@ public class WebSecurityConfig {
                 );
 
         http
-                .formLogin(login -> login.loginPage("/login").permitAll())
+                .formLogin(login -> login
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", false)
+                        .permitAll())
                 .logout((logout) -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/"));
 
         http.headers(headers ->
-                             headers.frameOptions(FrameOptionsConfig::sameOrigin));
+                headers.frameOptions(FrameOptionsConfig::sameOrigin));
 
         return http.build();
     }
