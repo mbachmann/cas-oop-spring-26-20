@@ -92,6 +92,4 @@ public abstract class SharedMockMvcTest {
         assertEquals(1, headers.size());
         return headers.get(0);
     }
-
-
 }
