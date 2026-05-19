@@ -1,4 +1,4 @@
-package com.example.demoinitial.web;
+package com.example.demoinitial.web.controller;
 
 
 import com.example.demoinitial.domain.User;
