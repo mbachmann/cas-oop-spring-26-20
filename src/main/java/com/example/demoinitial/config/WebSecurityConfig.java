@@ -23,12 +23,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -72,20 +71,21 @@ public class WebSecurityConfig {
     @Order(0)
     SecurityFilterChain resources(HttpSecurity http) throws Exception {
         String[] permittedResources = new String[] {
-                "/", "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
-                "/index.html","/favicon.ico", "/error",
-				"/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**"
+                "/static/**","/css/**","/js/**","/webfonts/**", "/webjars/**",
+                "/favicon.ico", "/error",
+				"/v3/**","/swagger-ui.html","/swagger-ui/**", "/actuator/**",
+                "/.well-known/**"
         };
         http
-            .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
-            .csrf(AbstractHttpConfigurer::disable)
-            .securityMatcher(permittedResources)
-            .authorizeHttpRequests((
-                    authorize) -> authorize.anyRequest().permitAll()
-            )
-            .requestCache(RequestCacheConfigurer::disable)
-            .securityContext(SecurityContextConfigurer::disable)
-            .sessionManagement(AbstractHttpConfigurer::disable);
+                .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
+                .csrf(AbstractHttpConfigurer::disable)
+                .securityMatcher(permittedResources)
+                .authorizeHttpRequests((
+                                               authorize) -> authorize.anyRequest().permitAll()
+                )
+                .requestCache(RequestCacheConfigurer::disable)
+                .securityContext(SecurityContextConfigurer::disable)
+                .sessionManagement(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
@@ -119,10 +119,13 @@ public class WebSecurityConfig {
     protected SecurityFilterChain mvcFilterChain(HttpSecurity http) throws Exception {
         http
             .headers(headers -> headers.frameOptions(FrameOptionsConfig::sameOrigin))
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .ignoringRequestMatchers("/h2-console/**")
+            )
             .authorizeHttpRequests((requests) -> requests
 				.requestMatchers(OPTIONS).permitAll()
-				.requestMatchers("/", "/index.html", "/login", "/error").permitAll()
+				.requestMatchers("/", "/index.html", "/login").permitAll()
 				.requestMatchers("/users/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
 				.requestMatchers("/stomp-broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
 				.requestMatchers("/broadcast/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
@@ -132,10 +135,13 @@ public class WebSecurityConfig {
             );
 
         http
-            .formLogin(login -> login.loginPage("/login").permitAll())
-            .logout((logout) -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/"));
+                .formLogin(login -> login
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", false)
+                        .permitAll())
+                .logout((logout) -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/"));
 
         http.headers(headers ->
                              headers.frameOptions(FrameOptionsConfig::sameOrigin));

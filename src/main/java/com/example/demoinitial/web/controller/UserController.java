@@ -1,9 +1,13 @@
-package com.example.demoinitial.web;
+package com.example.demoinitial.web.controller;
 
 
+import com.example.demoinitial.domain.Role;
 import com.example.demoinitial.domain.User;
+import com.example.demoinitial.domain.enums.ERole;
+import com.example.demoinitial.repository.RoleRepository;
 import com.example.demoinitial.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,12 +25,14 @@ import jakarta.validation.Valid;
 public class UserController {
 
     private final UserRepository userRepository;
-
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/list")
@@ -58,7 +64,12 @@ public class UserController {
             return "add-user";
         }
 
-        user.setPassword(user.getPassword());
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() ->
+            new Exception("userRole not found")
+        );
+
+        user.getRoles().add(userRole);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return "redirect:/users/list";
     }
@@ -101,7 +112,7 @@ public class UserController {
             }
         }
 
-        user.setPassword(updatedUser.getPassword());
+        user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         userRepository.save(user);
 
         return "redirect:/users/list";
