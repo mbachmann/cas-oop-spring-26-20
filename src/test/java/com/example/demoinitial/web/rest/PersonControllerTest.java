@@ -40,6 +40,14 @@ class PersonControllerTest {
 	@MockitoBean
 	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
+	@Autowired
+	private MockMvc mockMvc;
+
+	@MockitoBean
+	private PersonService personService;
+
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
 	private Person johnDoe;
 	private Person janeDoe;
 	private Person johnSmith;
@@ -66,14 +74,6 @@ class PersonControllerTest {
 		aliceWonder.setLastName("Wonder");
 		aliceWonder.setId(5L);
 	}
-
-	@Autowired
-	private MockMvc mockMvc;
-
-	@MockitoBean
-	private PersonService personService;
-
-	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Test
 	@DisplayName("200 - getPersonById")
